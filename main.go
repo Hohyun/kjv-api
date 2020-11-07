@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/rs/cors"
 )
 
 // Verse : struct for json
@@ -29,8 +30,10 @@ func main() {
 	r.HandleFunc("/{code}/{chapter}/{verse}", oneVerseHandler)
 	r.HandleFunc("/{code}/{chapter}", chapterHandler)
 	r.HandleFunc("/", homeHandler)
+
+	handler := cors.Default().Handler(r)
 	fmt.Println("Bible API server started ... ")
-	http.ListenAndServe(":3000", r)
+	http.ListenAndServe(":3001", handler)
 }
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
@@ -44,21 +47,20 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 func multiVerseHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	verses := getVerses(vars["code"], vars["chapter"], vars["from"], vars["to"])
-	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(verses)
 }
 
 func oneVerseHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	verse := getVerses(vars["code"], vars["chapter"], vars["verse"], vars["verse"])
-	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(verse)
 }
 
 func chapterHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	verse := getVerses(vars["code"], vars["chapter"], "1", "1000")
-	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(verse)
 }
 
